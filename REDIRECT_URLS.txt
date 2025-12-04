@@ -1,0 +1,20 @@
+Copy these URLs to your Supabase Redirect URLs configuration:
+
+=== DEVELOPMENT ===
+http://localhost:3000/auth/confirm
+http://localhost:3000/auth/callback
+
+=== PRODUCTION (replace with your domain) ===
+https://your-domain.com/auth/confirm
+https://your-domain.com/auth/callback
+
+=== SITE URL ===
+Development: http://localhost:3000
+Production: https://your-domain.com
+
+Instructions:
+1. Go to Supabase Dashboard → Authentication → URL Configuration
+2. Set Site URL to your development or production URL
+3. Add all redirect URLs above (one per line)
+4. Enable email confirmations in Authentication → Providers → Email
+5. Save and test!
