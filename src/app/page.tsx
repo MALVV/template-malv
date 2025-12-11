@@ -7,6 +7,7 @@ import {
   CTA,
   Footer,
 } from "@/components/landing";
+import { HomeLoader } from "@/components/ui/home-loader";
 
 /**
  * Home Page Component
@@ -16,17 +17,19 @@ import {
  */
 export default function Home() {
   return (
-    <main className="bg-background text-foreground">
-      <HeroSection />
+    <HomeLoader>
+      <main className="bg-background text-foreground">
+        <HeroSection />
 
-      {/* Rest of the content */}
-      <section className="px-6 py-12 space-y-16 border border-border bg-card">
-        <Metrics />
-        <ProductDemo />
-        <CTA />
-        <Footer />
-      </section>
-    </main>
+        {/* Rest of the content */}
+        <section className="px-6 py-12 space-y-16 border border-border bg-card">
+          <Metrics />
+          <ProductDemo />
+          <CTA />
+          <Footer />
+        </section>
+      </main>
+    </HomeLoader>
   );
 }
 

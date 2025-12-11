@@ -84,9 +84,20 @@ export default function ConfirmEmailPage() {
             return;
           }
         } else if (token) {
+          // Token-based verification requires email
+          // Try to extract email from URL or use exchangeCodeForSession instead
+          const email = searchParams.get("email");
+          
+          if (!email) {
+            // If no email in params, try to use the token with exchangeCodeForSession
+            // This handles the case where Supabase redirects with a code instead
+            throw new Error("Email parameter is required for token verification. Please use the full confirmation link from your email.");
+          }
+          
           const { data, error: verifyError } = await supabase.auth.verifyOtp({
             token,
             type: (type as any) || "email",
+            email: email,
           });
 
           if (verifyError) throw verifyError;

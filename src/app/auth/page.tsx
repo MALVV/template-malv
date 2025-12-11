@@ -6,6 +6,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Mail, Lock, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
@@ -304,24 +305,40 @@ export default function AuthPage() {
           </motion.button>
         </form>
 
-        <motion.button
-          type="button"
-          onClick={() => {
-            setMode((prev) => (prev === "sign-in" ? "sign-up" : "sign-in"));
-            setError(null);
-            setSuccess(null);
-            setPassword("");
-            setConfirmPassword("");
-          }}
-          className="w-full text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          {mode === "sign-in"
-            ? "No account yet? Create one instead."
-            : "Already have an account? Sign in instead."}
-        </motion.button>
+        <div className="space-y-3">
+          {mode === "sign-in" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Link
+                href="/auth/forgot-password"
+                className="block w-full text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                Forgot your password?
+              </Link>
+            </motion.div>
+          )}
+          <motion.button
+            type="button"
+            onClick={() => {
+              setMode((prev) => (prev === "sign-in" ? "sign-up" : "sign-in"));
+              setError(null);
+              setSuccess(null);
+              setPassword("");
+              setConfirmPassword("");
+            }}
+            className="w-full text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            {mode === "sign-in"
+              ? "No account yet? Create one instead."
+              : "Already have an account? Sign in instead."}
+          </motion.button>
+        </div>
       </motion.div>
     </main>
   );
