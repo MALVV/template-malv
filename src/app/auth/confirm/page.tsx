@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -247,5 +247,42 @@ export default function ConfirmEmailPage() {
         )}
       </motion.div>
     </main>
+  );
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+          <motion.div
+            className="w-full max-w-lg border-2 border-border bg-card px-8 py-12 space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-center space-y-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="inline-block"
+              >
+                <Loader2 className="h-12 w-12 text-muted-foreground" />
+              </motion.div>
+              <div className="space-y-2">
+                <h1 className="text-xl font-semibold uppercase tracking-[0.3em]">
+                  Loading
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Preparing confirmation...
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </main>
+      }
+    >
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Lock, ArrowLeft, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
+import { Lock, ArrowLeft, CheckCircle2, XCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
@@ -344,6 +344,38 @@ export default function ResetPasswordPage() {
         </motion.div>
       </motion.div>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+          <motion.div
+            className="w-full max-w-md border-2 border-border bg-card px-8 py-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-center space-y-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="inline-block"
+              >
+                <Loader2 className="h-12 w-12 text-muted-foreground" />
+              </motion.div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              </div>
+            </div>
+          </motion.div>
+        </main>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
 
