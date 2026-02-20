@@ -8,8 +8,8 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
-import { Mail, Lock, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
+import { isSupabaseConfigured, getSupabaseOrThrow } from "@/lib/supabase";
+import { Mail, Lock, CheckCircle2, XCircle, Eye, EyeOff, Info } from "lucide-react";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -22,6 +22,41 @@ export default function AuthPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  if (!isSupabaseConfigured) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+        <motion.div
+          className="w-full max-w-md border-2 border-border bg-card px-8 py-10 space-y-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="border-2 border-border bg-muted/30 p-6 flex flex-col items-center gap-4 text-center">
+            <Info className="h-12 w-12 text-muted-foreground" />
+            <div className="space-y-2">
+              <p className="text-base font-medium text-foreground">
+                Auth no configurado
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Este template puede usarse solo como landing. Para habilitar login, configura
+                <code className="block mt-2 px-2 py-1 bg-muted text-xs">NEXT_PUBLIC_SUPABASE_URL</code>
+                y
+                <code className="block mt-1 px-2 py-1 bg-muted text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
+                en tu archivo .env.local.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/"
+            className="block w-full text-center border-2 border-foreground bg-foreground text-background text-sm font-medium uppercase tracking-[0.25em] py-3 hover:bg-background hover:text-foreground transition-colors"
+          >
+            Volver al inicio
+          </Link>
+        </motion.div>
+      </main>
+    );
+  }
 
   // Password validation
   const passwordRequirements = {
@@ -55,8 +90,9 @@ export default function AuthPage() {
     }
 
     try {
+      const auth = getSupabaseOrThrow();
       if (mode === "sign-in") {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await auth.auth.signInWithPassword({
           email,
           password,
         });
@@ -66,10 +102,8 @@ export default function AuthPage() {
           router.refresh();
         }
       } else {
-        // Get the base URL for redirect
         const redirectTo = `${window.location.origin}/auth/confirm`;
-        
-        const { data, error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await auth.auth.signUp({
           email,
           password,
           options: {
@@ -89,8 +123,8 @@ export default function AuthPage() {
           setConfirmPassword("");
         }
       }
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }

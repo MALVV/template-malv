@@ -6,9 +6,15 @@ import { AuthProvider } from "@/contexts/AuthContext";
 const interTight = Inter_Tight({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DaVincii",
+  title: {
+    default: "DaVincii",
+    template: "%s | DaVincii",
+  },
   description:
-    "Minimalist starter with Next.js, shadcn/ui, Tailwind CSS, Supabase and Prisma",
+    "Plantilla minimalista para landing con Next.js, Tailwind CSS y auth opcional (Supabase).",
+  openGraph: {
+    type: "website",
+  },
 };
 
 export default function RootLayout({

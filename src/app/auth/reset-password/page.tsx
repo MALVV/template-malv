@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, getSupabaseOrThrow } from "@/lib/supabase";
 import { Lock, ArrowLeft, CheckCircle2, XCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 
 function ResetPasswordContent() {
@@ -31,11 +31,14 @@ function ResetPasswordContent() {
   const passwordsMatch = password === confirmPassword;
 
   useEffect(() => {
+    if (!isSupabaseConfigured) router.replace("/auth");
+  }, [router]);
+
+  useEffect(() => {
     // Verificar si hay un token válido en la URL
     const checkToken = async () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get("access_token");
-      const type = hashParams.get("type");
 
       // También verificar query params
       const tokenHash = searchParams.get("token_hash");
@@ -70,7 +73,8 @@ function ResetPasswordContent() {
     }
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const auth = getSupabaseOrThrow();
+      const { error: updateError } = await auth.auth.updateUser({
         password: password,
       });
 
@@ -85,8 +89,8 @@ function ResetPasswordContent() {
         router.push("/dashboard");
         router.refresh();
       }, 2000);
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

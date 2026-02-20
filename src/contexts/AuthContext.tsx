@@ -3,13 +3,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  /** Indica si la app tiene auth configurado (Supabase). */
+  isAuthEnabled: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  isAuthEnabled: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -26,14 +29,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Get initial session
+    if (!isSupabaseConfigured || !supabase) {
+      const t = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(t);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -46,12 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    }
     router.push("/auth");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        signOut,
+        isAuthEnabled: isSupabaseConfigured,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -64,4 +80,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

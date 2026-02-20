@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, getSupabaseOrThrow } from "@/lib/supabase";
 import { Mail, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
@@ -14,16 +14,21 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) router.replace("/auth");
+  }, [router]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!isSupabaseConfigured) return;
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
       const redirectTo = `${window.location.origin}/auth/reset-password`;
-      
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      const auth = getSupabaseOrThrow();
+      const { error: resetError } = await auth.auth.resetPasswordForEmail(
         email,
         {
           redirectTo,
@@ -34,8 +39,8 @@ export default function ForgotPasswordPage() {
 
       setSuccess(true);
       setEmail("");
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +69,7 @@ export default function ForgotPasswordPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email address and we&apos;ll send you a link to reset your password.
           </motion.p>
         </header>
 
@@ -81,7 +86,7 @@ export default function ForgotPasswordPage() {
                   Check your email
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  We've sent a password reset link to your email address. Please check your inbox and follow the instructions.
+                  We&apos;ve sent a password reset link to your email address. Please check your inbox and follow the instructions.
                 </p>
               </div>
             </div>

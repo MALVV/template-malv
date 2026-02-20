@@ -9,14 +9,28 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAuthEnabled } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth");
+    if (!isAuthEnabled) {
+      router.replace("/");
+      return;
     }
-  }, [user, loading, router]);
+    if (!loading && !user) {
+      router.replace("/auth");
+    }
+  }, [user, loading, isAuthEnabled, router]);
+
+  if (!isAuthEnabled) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background text-foreground">
+        <div className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+          Redirecting...
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -34,4 +48,3 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>;
 }
-

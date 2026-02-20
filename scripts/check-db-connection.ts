@@ -49,7 +49,7 @@ async function checkConnection() {
     console.log(`✅ Tablas encontradas: ${tables.length}`);
     if (tables.length > 0) {
       console.log('   Tablas:');
-      tables.forEach(table => {
+      tables.forEach((table: { tablename: string }) => {
         console.log(`   - ${table.tablename}`);
       });
     } else {
@@ -62,9 +62,9 @@ async function checkConnection() {
     try {
       const userCount = await prisma.user.count();
       console.log(`✅ Modelo User accesible (${userCount} usuarios en la base de datos)`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error al acceder al modelo User:');
-      console.error(`   ${error.message}`);
+      console.error(`   ${error instanceof Error ? error.message : String(error)}`);
       console.log('\n💡 Solución:');
       console.log('1. Verifica que el schema.prisma tenga el modelo User');
       console.log('2. Ejecuta: npm run db:push');
@@ -73,21 +73,21 @@ async function checkConnection() {
 
     console.log('\n✅ Verificación completada exitosamente!');
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('\n❌ Error al conectar con la base de datos:');
-    console.error(`   ${error.message}\n`);
-    
-    if (error.code === 'P1001') {
+    console.error(`   ${error instanceof Error ? error.message : String(error)}\n`);
+    const err = error as { code?: string };
+    if (err.code === 'P1001') {
       console.log('💡 Posibles soluciones:');
       console.log('1. Verifica que la base de datos esté corriendo');
       console.log('2. Verifica que la URL de conexión sea correcta');
       console.log('3. Verifica credenciales (usuario, contraseña)');
       console.log('4. Verifica que el puerto sea correcto (por defecto 5432 para PostgreSQL)');
-    } else if (error.code === 'P1000') {
+    } else if (err.code === 'P1000') {
       console.log('💡 Posibles soluciones:');
       console.log('1. Verifica que la base de datos exista');
       console.log('2. Verifica que tengas permisos para acceder');
-    } else if (error.code === 'P1017') {
+    } else if (err.code === 'P1017') {
       console.log('💡 Posibles soluciones:');
       console.log('1. La conexión se cerró inesperadamente');
       console.log('2. Verifica la estabilidad de la conexión');

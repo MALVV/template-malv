@@ -15,18 +15,17 @@ export function HomeLoader({ children }: HomeLoaderProps) {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    // Solo mostrar en la página home (/)
     const isHomePage = pathname === "/";
-    
-    if (isHomePage) {
-      // Mostrar loader cada vez que se carga/recarga la página
-      setIsLoading(true);
-      setShowContent(false);
-    } else {
-      // En otras páginas, mostrar contenido inmediatamente
-      setIsLoading(false);
-      setShowContent(true);
-    }
+    const timer = setTimeout(() => {
+      if (isHomePage) {
+        setIsLoading(true);
+        setShowContent(false);
+      } else {
+        setIsLoading(false);
+        setShowContent(true);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   const handleLoaderComplete = () => {

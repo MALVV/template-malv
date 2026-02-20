@@ -66,6 +66,23 @@ npm run db:push
 - `npm run db:migrate` - Create a new migration
 - `npm run db:studio` - Open Prisma Studio
 
+## 🔒 npm audit y vulnerabilidad ajv (ReDoS)
+
+Tras `npm install`, `npm audit` puede mostrar **10 vulnerabilidades moderadas** por **ajv** (CVE / ReDoS con la opción `$data`).
+
+- **Por qué no aplica aquí:** ESLint **no usa** la opción `$data` de ajv ([confirmado por el equipo de ESLint](https://github.com/eslint/eslint/issues/20508#issuecomment-2581)); la vulnerabilidad solo afecta a proyectos que usan esa opción. Por tanto, en este template el aviso es un **falso positivo** para el uso real.
+- **Por qué no forzar ajv 8:** Hacer `npm audit fix --force` o un override a ajv 8.x **rompe ESLint** (incompatibilidad entre ajv 6 y 8). El equipo de ESLint está trabajando en la migración ([PR #20511](https://github.com/eslint/eslint/pull/20511)); hasta entonces, la opción segura es **no** usar `--force`.
+- **Qué sí está resuelto:** El override de `minimatch` en `package.json` corrige las vulnerabilidades de **severidad alta**. Las 10 moderadas restantes son solo por ajv en dependencias de desarrollo y no impactan la app en producción.
+
+**Para equipos de seguridad:** Puedes marcar esta CVE como "no aplicable" o excepción justificada, indicando que ESLint no utiliza la opción `$data` de ajv. Referencia: [eslint/eslint#20508](https://github.com/eslint/eslint/issues/20508).
+
+**Opciones que sí puedes usar (sin romper el proyecto):**
+- **Solo dependencias de producción:** `npm audit --production` no instala ni audita devDependencies (donde está ESLint), así que el reporte puede salir en 0 vulnerabilidades para lo que realmente se despliega.
+- **Excepción en el escáner:** En Snyk, Dependabot, etc., añade esta CVE a la lista de permitidas / "not applicable" con la justificación del enlace anterior.
+- **Esperar a ESLint:** La actualización a ajv 8 está en discusión/PR en ESLint; cuando la integren en una versión estable, al actualizar `eslint` y `eslint-config-next` las 10 moderadas desaparecerán.
+
+**Lo que no funciona:** Un `overrides` de `ajv` a 8.x en `package.json` hace que ESLint falle al arrancar (APIs incompatibles entre ajv 6 y 8), por eso no se recomienda.
+
 ## 📁 Project structure
 
 ```

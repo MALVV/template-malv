@@ -156,7 +156,7 @@ function DashboardContent() {
               Dashboard
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5">
-              Welcome back. Here's what's happening with your platform today.
+              Welcome back. Here&apos;s what&apos;s happening with your platform today.
             </p>
           </div>
           <div className="flex items-center gap-4">

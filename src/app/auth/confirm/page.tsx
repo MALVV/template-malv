@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, getSupabaseOrThrow } from "@/lib/supabase";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -16,7 +16,13 @@ function ConfirmEmailContent() {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        // Check if there's an error in the URL
+        if (!isSupabaseConfigured) {
+          setStatus("error");
+          setMessage("Auth is not configured. Please set Supabase environment variables.");
+          return;
+        }
+        const auth = getSupabaseOrThrow();
+
         const errorParam = searchParams.get("error");
         if (errorParam) {
           setStatus("error");
@@ -24,7 +30,6 @@ function ConfirmEmailContent() {
           return;
         }
 
-        // Check URL hash for tokens (Supabase redirects with hash fragments)
         if (window.location.hash) {
           const hashParams = new URLSearchParams(
             window.location.hash.substring(1)
@@ -33,8 +38,7 @@ function ConfirmEmailContent() {
           const refreshToken = hashParams.get("refresh_token");
 
           if (accessToken && refreshToken) {
-            // Set session from hash params
-            const { data, error: sessionError } = await supabase.auth.setSession({
+            const { data, error: sessionError } = await auth.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             });
@@ -64,9 +68,9 @@ function ConfirmEmailContent() {
         const type = searchParams.get("type");
 
         if (tokenHash) {
-          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+          const { data, error: verifyError } = await auth.auth.verifyOtp({
             token_hash: tokenHash,
-            type: (type as any) || "email",
+            type: (type as "email" | "recovery" | "signup") || "email",
           });
 
           if (verifyError) throw verifyError;
@@ -94,9 +98,9 @@ function ConfirmEmailContent() {
             throw new Error("Email parameter is required for token verification. Please use the full confirmation link from your email.");
           }
           
-          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+          const { data, error: verifyError } = await auth.auth.verifyOtp({
             token,
-            type: (type as any) || "email",
+            type: (type as "email" | "recovery" | "signup") || "email",
             email: email,
           });
 
@@ -116,11 +120,10 @@ function ConfirmEmailContent() {
           }
         }
 
-        // If no tokens found, wait a bit and check session
         setTimeout(async () => {
           const {
             data: { session },
-          } = await supabase.auth.getSession();
+          } = await auth.auth.getSession();
           if (session?.user) {
             setStatus("success");
             setMessage("Email confirmed successfully!");
@@ -132,11 +135,12 @@ function ConfirmEmailContent() {
             throw new Error("No valid confirmation token found in URL");
           }
         }, 1000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Email confirmation error:", error);
         setStatus("error");
+        const msg = error instanceof Error ? error.message : String(error);
         setMessage(
-          error.message?.includes("expired")
+          msg.includes("expired")
             ? "The confirmation link has expired. Please request a new one."
             : "Failed to confirm email. The link may be invalid or expired."
         );
